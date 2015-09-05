@@ -13,5 +13,42 @@
         android:id="@+id/button"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="68dp" />
+        android:visibility="gone" />
+
+    <Spinner
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/dropEmail"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true"/>
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:inputType="phone"
+        android:id="@+id/editPhone"
+        android:layout_above="@+id/dropEmail"
+        android:gravity="center_horizontal"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="70dp"
+        android:hint="Enter Phone Number" />
+
+    <Button
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Register"
+        android:id="@+id/btnRegister"
+        android:layout_marginTop="91dp"
+        android:layout_below="@+id/dropEmail"
+        android:layout_centerHorizontal="true" />
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:inputType="phone"
+        android:id="@+id/editISO"
+        android:layout_alignTop="@+id/editPhone"
+        android:layout_toLeftOf="@+id/editPhone"
+        android:layout_toStartOf="@+id/editPhone" />
 </RelativeLayout>

@@ -1,5 +1,7 @@
 package com.myphone;
 
+import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
@@ -11,6 +13,8 @@ import android.support.v4.app.FragmentManager;
 import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
+import android.telephony.TelephonyManager;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -18,10 +22,18 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.support.v4.widget.DrawerLayout;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.Toolbar;
+
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks {
@@ -89,7 +101,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void shareWithFriends(){
-        String str = "Share with your friends this Awesome app for organizing messages \n"+
+        String str = "I Started using PhoneCal, an intelligent phonebook. \n"+
                 "https://play.google.com/store/apps/details?id=ashu.app.smstweak";
         Intent sendIntent = new Intent();
         sendIntent.setAction(Intent.ACTION_SEND);
@@ -147,6 +159,13 @@ public class MainActivity extends AppCompatActivity
          */
         private static final String ARG_SECTION_NUMBER = "section_number";
         private Button btnCall;
+        private EditText editPhone;
+        private EditText editISO;
+        private Spinner emailChose;
+        private Button btnRegister;
+        private String phoneNum;
+        private String email;
+        private String iso="";
 
         /**
          * Returns a new instance of this fragment for the given section
@@ -168,13 +187,121 @@ public class MainActivity extends AppCompatActivity
                                  Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_main, container, false);
             btnCall = (Button) rootView.findViewById(R.id.button);
+            editPhone = (EditText) rootView.findViewById(R.id.editPhone);
+            emailChose = (Spinner) rootView.findViewById(R.id.dropEmail);
+            btnRegister = (Button) rootView.findViewById(R.id.btnRegister);
+            editISO = (EditText) rootView.findViewById(R.id.editISO);
+
             btnCall.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     performDial("123");
                 }
             });
+
+            String isoNum = getISONumber();
+
+            CountryPrefix countryPrefix= new CountryPrefix();
+            try {
+                iso = countryPrefix.prefixFor(isoNum.toUpperCase());
+            }
+            catch (Exception e){
+
+            }
+
+            final String phone = getPhoneNumber();
+            List<String> emails = getUserName();
+
+
+            if(!isoNum.isEmpty()){
+                editISO.setText(""+iso);
+            }
+
+            if(!phone.isEmpty())
+                editPhone.setText("" + phone);
+
+            ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<String>(getActivity(),
+                    android.R.layout.simple_spinner_item, android.R.id.text1);
+            spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            emailChose.setAdapter(spinnerAdapter);
+            for(int i = 0;i<emails.size(); i++){
+                spinnerAdapter.add(emails.get(i));
+            }
+
+            spinnerAdapter.notifyDataSetChanged();
+
+
+
+            emailChose.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                    email = emailChose.getItemAtPosition(position).toString();
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> parent) {
+
+                }
+            });
+
+
+            btnRegister.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    phoneNum = editPhone.getText().toString();
+                    if (phoneNum.length() != 10)
+                        Toast.makeText(getActivity().getApplicationContext(),
+                                "Please Enter Valid phone number", Toast.LENGTH_SHORT)
+                                .show();
+                    else {
+                        Toast.makeText(getActivity().getApplicationContext(),
+                                "Email:" + email + "\nPhone: " + iso+phoneNum, Toast.LENGTH_SHORT)
+                                .show();
+                    }
+                }
+            });
+
             return rootView;
+        }
+
+        private String getPhoneNumber(){
+            TelephonyManager mTelephonyMgr;
+            mTelephonyMgr = (TelephonyManager) getActivity().
+                    getSystemService(Context.TELEPHONY_SERVICE);
+
+            String number = mTelephonyMgr.getLine1Number();
+
+
+            return number;
+
+        }
+
+        private String getISONumber(){
+            TelephonyManager mTelephonyMgr;
+            mTelephonyMgr = (TelephonyManager) getActivity().
+                    getSystemService(Context.TELEPHONY_SERVICE);
+
+            String number = mTelephonyMgr.getSimCountryIso();
+            Log.d("number",number);
+
+            return number;
+        }
+
+        public List<String> getUserName(){
+            String user = "";
+            AccountManager manager = AccountManager.get(getActivity());
+//            Account[] accounts = getActivity().manager.getAccountsByType("com.google");
+            Account[] accounts = manager.getAccountsByType("com.google");
+            List<String> possibleEmails = new LinkedList<>();
+
+
+            for (Account account : accounts) {
+                // TODO: Check possibleEmail against an email regex or treat
+                // account.name as an email address only for certain account.type values.
+                possibleEmails.add(account.name);
+            }
+
+            return  possibleEmails;
         }
 
         private void performDial(String numberString) {
