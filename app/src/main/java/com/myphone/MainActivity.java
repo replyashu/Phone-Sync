@@ -3,8 +3,15 @@ package com.myphone;
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.net.Uri;
+import android.os.AsyncTask;
+import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.ActionBar;
@@ -13,6 +20,7 @@ import android.support.v4.app.FragmentManager;
 import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
+import android.telephony.SmsManager;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.Gravity;
@@ -31,11 +39,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.Toolbar;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Random;
 
-public class MainActivity extends AppCompatActivity
+public class MainActivity extends ActionBarActivity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks {
 
     /**
@@ -109,7 +119,7 @@ public class MainActivity extends AppCompatActivity
         sendIntent.putExtra(Intent.EXTRA_TEXT, str);
         sendIntent.setType("text/plain");
         startActivityForResult(Intent.createChooser(
-                        sendIntent,"Share With Your Friends"),
+                        sendIntent, "Share With Your Friends"),
                 Activity.RESULT_OK);
     }
 
@@ -166,6 +176,8 @@ public class MainActivity extends AppCompatActivity
         private String phoneNum;
         private String email;
         private String iso="";
+        ArrayList<String> messages;
+        private SharedPreferences passCode;
 
         /**
          * Returns a new instance of this fragment for the given section
@@ -199,6 +211,15 @@ public class MainActivity extends AppCompatActivity
                 }
             });
 
+            passCode = getActivity().getSharedPreferences("pass", MODE_PRIVATE);
+
+            String pass = passCode.getString("pass","0");
+            if(pass.equalsIgnoreCase("1")){
+                Intent intent = new Intent(getActivity().getApplicationContext(),
+                        HomeActivity.class);
+                startActivity(intent);
+
+            }
             String isoNum = getISONumber();
 
             CountryPrefix countryPrefix= new CountryPrefix();
@@ -217,8 +238,10 @@ public class MainActivity extends AppCompatActivity
                 editISO.setText(""+iso);
             }
 
-            if(!phone.isEmpty())
+            if(!phone.isEmpty()) {
                 editPhone.setText("" + phone);
+                phoneNum = phone;
+            }
 
             ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<String>(getActivity(),
                     android.R.layout.simple_spinner_item, android.R.id.text1);
@@ -249,15 +272,54 @@ public class MainActivity extends AppCompatActivity
                 @Override
                 public void onClick(View v) {
                     phoneNum = editPhone.getText().toString();
-                    if (phoneNum.length() != 10)
-                        Toast.makeText(getActivity().getApplicationContext(),
-                                "Please Enter Valid phone number", Toast.LENGTH_SHORT)
-                                .show();
-                    else {
-                        Toast.makeText(getActivity().getApplicationContext(),
-                                "Email:" + email + "\nPhone: " + iso+phoneNum, Toast.LENGTH_SHORT)
-                                .show();
-                    }
+
+                    final Intent intent = new Intent(getActivity().
+                            getApplicationContext(),HomeActivity.class);
+
+
+                        if (phoneNum.length() != 10 && phone.isEmpty())
+                            Toast.makeText(getActivity().getApplicationContext(),
+                                    "Please Enter Valid phone number", Toast.LENGTH_SHORT)
+                                    .show();
+                        else {
+                            final String smsPasscode = String.valueOf(100000 + new Random().nextInt(89999));
+                            SmsManager smsManager = SmsManager.getDefault();
+                            smsManager.sendTextMessage(phoneNum, null, "Your SMS verification passcode     is " + smsPasscode, null, null);
+
+
+                            Log.d("Verification", "Verification Started" + smsPasscode);
+//                            startActivity(intent);
+
+                            LayoutInflater layoutInflater = LayoutInflater.from(getActivity());
+                            View promptView = layoutInflater.inflate(R.layout.input_box, null);
+                            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getActivity());
+                            alertDialogBuilder.setView(promptView);
+                            alertDialogBuilder.setTitle("Verify the 6 Digit OTP");
+
+                            final EditText editText = (EditText) promptView.findViewById(R.id.editPasscode);
+
+                            // setup a dialog window
+                            alertDialogBuilder.setCancelable(false)
+                                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                        public void onClick(DialogInterface dialog, int id) {
+                                            String num = editText.getText().toString();
+                                            if(num.equalsIgnoreCase(smsPasscode)){
+                                                Toast.makeText(getActivity().getApplicationContext(),
+                                                        "User Verified", Toast.LENGTH_LONG).show();
+                                                passCode.edit().putString("pass", "1").apply();
+                                                startActivity(intent);
+                                            }
+                                        }
+                                    });
+
+
+                            // create an alert dialog
+                            AlertDialog alert = alertDialogBuilder.create();
+                            alert.show();
+
+
+                        }
+
                 }
             });
 
@@ -275,6 +337,7 @@ public class MainActivity extends AppCompatActivity
             return number;
 
         }
+
 
         private String getISONumber(){
             TelephonyManager mTelephonyMgr;
@@ -317,6 +380,45 @@ public class MainActivity extends AppCompatActivity
             super.onAttach(activity);
             ((MainActivity) activity).onSectionAttached(
                     getArguments().getInt(ARG_SECTION_NUMBER));
+        }
+
+        private class ReadAndVerifyPassCode extends AsyncTask<String, Void, String>{
+
+            private ProgressDialog progressDialog;
+
+            @Override
+            protected void onPreExecute() {
+                super.onPreExecute();
+
+                progressDialog = new ProgressDialog(getActivity());
+                progressDialog.setMessage("Fetching Results For You");
+                progressDialog.setIndeterminate(true);
+                progressDialog.setCancelable(true);
+                progressDialog.show();
+            }
+
+            @Override
+            protected String doInBackground(String... params) {
+                //Send the phone number with email to server
+
+                Cursor cursor = getActivity().getApplicationContext().
+                        getContentResolver().query(Uri.parse("content://sms/inbox"), null, null, null, null);
+
+                if (cursor.moveToFirst()) { // must check the result to prevent exception
+                    for(int i = 0; i<10; i++){
+                        String msgData = cursor.getString(cursor.getColumnIndexOrThrow("body")).toString();
+                    }
+                }
+
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(String s) {
+                progressDialog.dismiss();
+                super.onPostExecute(s);
+
+            }
         }
     }
 }
