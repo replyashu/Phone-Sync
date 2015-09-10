@@ -2,6 +2,9 @@ package com.myphone;
 
 import android.annotation.TargetApi;
 import android.app.FragmentManager;
+import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.PersistableBundle;
@@ -22,6 +25,8 @@ public class HomeActivity extends ActionBarActivity implements ActionBar.TabList
     private ViewPager viewPager;
     private FragmentPagerAdapter tabAdapter;
     private String[] tabs ={"Contacts","Trunk Call", "Favorite", "Call Log", "Spam"};
+    private SharedPreferences passCode;
+    private String isVerified = "0";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -34,7 +39,15 @@ public class HomeActivity extends ActionBarActivity implements ActionBar.TabList
         viewPager.setAdapter(tabAdapter);
 
         final ActionBar actionBar = getSupportActionBar();
-        Log.d("Actionbar:", "action: " + actionBar);
+        actionBar.setTitle("Home Page");
+
+        actionBar.setBackgroundDrawable(new ColorDrawable(Color.parseColor("#FFB9A37D")));
+        actionBar.setDisplayShowHomeEnabled(true);
+        actionBar.setDisplayHomeAsUpEnabled(true);
+
+        passCode = getSharedPreferences("pass",MODE_PRIVATE);
+        isVerified = passCode.getString("pass", "0");
+
         actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
 
         for(String tab_name : tabs){
@@ -72,5 +85,14 @@ public class HomeActivity extends ActionBarActivity implements ActionBar.TabList
     @Override
     public void onTabReselected(ActionBar.Tab tab, FragmentTransaction ft) {
 
+    }
+
+    @Override
+    public void onBackPressed() {
+        Log.d("isVerified", isVerified);
+        if(isVerified.equalsIgnoreCase("1"))
+            this.finish();
+        else
+            super.onBackPressed();
     }
 }

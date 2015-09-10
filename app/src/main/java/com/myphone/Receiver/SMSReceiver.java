@@ -1,4 +1,4 @@
-package com.myphone.Receiver;
+package com.myphone.receiver;
 
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;

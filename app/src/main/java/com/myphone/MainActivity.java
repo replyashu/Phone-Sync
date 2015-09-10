@@ -57,6 +57,9 @@ public class MainActivity extends ActionBarActivity
      * Used to store the last screen title. For use in {@link #restoreActionBar()}.
      */
     private CharSequence mTitle;
+    private static String isVerified="0";
+    private SharedPreferences sp;
+    private static SharedPreferences passCode;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,6 +83,7 @@ public class MainActivity extends ActionBarActivity
                 getSupportFragmentManager().findFragmentById(R.id.navigation_drawer);
         mTitle = getTitle();
 
+
         // Set up the drawer.
 //        mNavigationDrawerFragment.setUp(
 //                R.id.navigation_drawer,
@@ -90,9 +94,26 @@ public class MainActivity extends ActionBarActivity
     public void onNavigationDrawerItemSelected(int position) {
         // update the main content by replacing fragments
         FragmentManager fragmentManager = getSupportFragmentManager();
-        fragmentManager.beginTransaction()
-                .replace(R.id.container, PlaceholderFragment.newInstance(position + 1))
-                .commit();
+        passCode = getSharedPreferences("pass", MODE_PRIVATE);
+
+        isVerified = passCode.getString("pass", "0");
+
+        if(isVerified.equalsIgnoreCase("0")) {
+            fragmentManager.beginTransaction()
+                    .replace(R.id.container, PlaceholderFragment.newInstance(position + 1))
+                    .commit();
+        }
+        else{
+            Intent intent = new Intent(getApplicationContext(),HomeActivity.class);
+            startActivity(intent);
+            finish();
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
     }
 
     public void onSectionAttached(int number) {
@@ -177,7 +198,7 @@ public class MainActivity extends ActionBarActivity
         private String email;
         private String iso="";
         ArrayList<String> messages;
-        private SharedPreferences passCode;
+
 
         /**
          * Returns a new instance of this fragment for the given section
@@ -215,9 +236,11 @@ public class MainActivity extends ActionBarActivity
 
             String pass = passCode.getString("pass","0");
             if(pass.equalsIgnoreCase("1")){
+                isVerified = "1";
                 Intent intent = new Intent(getActivity().getApplicationContext(),
                         HomeActivity.class);
                 startActivity(intent);
+                getActivity().finish();
 
             }
             String isoNum = getISONumber();
@@ -284,17 +307,16 @@ public class MainActivity extends ActionBarActivity
                         else {
                             final String smsPasscode = String.valueOf(100000 + new Random().nextInt(89999));
                             SmsManager smsManager = SmsManager.getDefault();
-                            smsManager.sendTextMessage(phoneNum, null, "Your SMS verification passcode     is " + smsPasscode, null, null);
+                            smsManager.sendTextMessage(phoneNum, null, "Your SMS verification passcode is " + smsPasscode, null, null);
 
 
-                            Log.d("Verification", "Verification Started" + smsPasscode);
 //                            startActivity(intent);
 
                             LayoutInflater layoutInflater = LayoutInflater.from(getActivity());
                             View promptView = layoutInflater.inflate(R.layout.input_box, null);
                             AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getActivity());
                             alertDialogBuilder.setView(promptView);
-                            alertDialogBuilder.setTitle("Verify the 6 Digit OTP");
+                            alertDialogBuilder.setTitle("Verify the 6 Digit OTP sent to your mobile" );
 
                             final EditText editText = (EditText) promptView.findViewById(R.id.editPasscode);
 
@@ -303,11 +325,16 @@ public class MainActivity extends ActionBarActivity
                                     .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                                         public void onClick(DialogInterface dialog, int id) {
                                             String num = editText.getText().toString();
-                                            if(num.equalsIgnoreCase(smsPasscode)){
+                                            if (num.equalsIgnoreCase(smsPasscode)) {
                                                 Toast.makeText(getActivity().getApplicationContext(),
                                                         "User Verified", Toast.LENGTH_LONG).show();
-                                                passCode.edit().putString("pass", "1").apply();
+                                                passCode.edit().putString("pass", "1").commit();
+
                                                 startActivity(intent);
+                                                getActivity().finish();
+                                            } else {
+                                                Toast.makeText(getActivity().getApplicationContext(),
+                                                        "Passcode/ OTP did not match", Toast.LENGTH_LONG).show();
                                             }
                                         }
                                     });
@@ -420,5 +447,12 @@ public class MainActivity extends ActionBarActivity
 
             }
         }
+
+
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
     }
 }

@@ -11,5 +11,16 @@
         <item name="spinBars">true</item>
         <item name="color">@android:color/white</item>
     </style>
+    
+    <style name="Mytheme" parent="Theme.AppCompat.Light">
+
+        <item name="android:actionBarStyle">@style/MyStyle</item>
+    </style>
+
+    <style name="MyStyle" parent="Widget.AppCompat.Light.ActionBar">
+        <item name="android:background">#666666</item>
+    </style>
+
+
 
 </resources>
