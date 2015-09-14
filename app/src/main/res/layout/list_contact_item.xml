@@ -5,11 +5,14 @@
     android:layout_height="match_parent">
 
     <TextView
-        android:layout_width="150dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Demo"
-        android:layout_margin="10dp"
+        android:layout_marginLeft="30dp"
+        android:layout_marginBottom="10dp"
+        android:layout_marginTop="10dp"
         android:id="@+id/txtContact"
+        android:layout_below="@+id/imgContact"
         android:textColor="#191919"
         android:textSize="13dp" />
 
@@ -18,7 +21,7 @@
         android:layout_height="wrap_content"
         android:text="New Text"
         android:id="@+id/txtPhone"
-        android:layout_toRightOf="@+id/txtContact"
+        android:layout_toRightOf="@+id/imgContact"
         android:layout_margin="10dp"
         android:textColor="#156443"
         android:textSize="15sp" />
@@ -30,5 +33,83 @@
         android:id="@+id/btnCall"
         android:layout_marginRight="5dp"
         android:layout_alignParentRight="true"
-        android:background="@android:drawable/ic_menu_call" />
+        android:background="@android:drawable/ic_menu_call"
+        android:visibility="gone" />
+
+    <ImageView
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_margin="10dp"
+        android:id="@+id/imgContact"
+        android:src="@drawable/img" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="New Text"
+        android:layout_marginLeft="10dp"
+        android:id="@+id/txtNick"
+        android:layout_below="@+id/txtPhone"
+        android:layout_toRightOf="@+id/imgContact"
+        android:visibility="gone" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="New Text"
+        android:id="@+id/txtTimes"
+        android:layout_marginLeft="10dp"
+        android:layout_below="@+id/txtNick"
+        android:layout_toRightOf="@+id/imgContact"
+        android:textColor="#ff9200" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="New Text"
+        android:layout_marginLeft="10dp"
+        android:id="@+id/txtUsed"
+        android:layout_toRightOf="@+id/imgContact"
+        android:layout_below="@+id/txtTimes"
+        android:textColor="#0011ff" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="New Text"
+        android:layout_marginLeft="10dp"
+        android:id="@+id/txtPresence"
+        android:layout_below="@+id/txtUsed"
+        android:layout_toRightOf="@+id/imgContact"
+        android:visibility="gone" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="New Text"
+        android:layout_marginLeft="10dp"
+        android:id="@+id/txtStatus"
+        android:layout_toRightOf="@+id/imgContact"
+        android:layout_below="@+id/txtPresence"
+        android:visibility="gone" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="New Text"
+        android:layout_marginLeft="10dp"
+        android:id="@+id/txtLabel"
+        android:layout_below="@+id/txtStatus"
+        android:layout_toRightOf="@+id/imgContact"
+        android:visibility="gone" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="New Text"
+        android:layout_marginLeft="10dp"
+        android:id="@+id/txtD"
+        android:layout_below="@+id/txtLabel"
+        android:layout_toRightOf="@+id/imgContact"
+        android:visibility="gone" />
 </RelativeLayout>

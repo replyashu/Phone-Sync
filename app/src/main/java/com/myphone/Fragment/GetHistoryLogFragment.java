@@ -17,6 +17,8 @@ import com.myphone.R;
 import com.myphone.adapter.HistoryLogAdapter;
 import com.myphone.collector.HistoryLog;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -27,12 +29,13 @@ import java.util.List;
 public class GetHistoryLogFragment extends Fragment {
 
     private ListView lstCallLogs;
-    private HistoryLog historyLog;
     private List<HistoryLog> callLog;
+
     private List<String> calName;
     private List<String> calNum;
     private List<String> calDuration;
     private List<String> calType;
+
 
     @Nullable
     @Override
@@ -40,7 +43,6 @@ public class GetHistoryLogFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.contacts_fragment, container, false);
 
         lstCallLogs = (ListView) rootView.findViewById(R.id.lstContacts);
-        historyLog = new HistoryLog();
         callLog = new LinkedList<>();
         calNum = new LinkedList<>();
         calName = new LinkedList<>();
@@ -75,6 +77,7 @@ public class GetHistoryLogFragment extends Fragment {
             int date = managedCursor.getColumnIndex(CallLog.Calls.DATE);
             int duration = managedCursor.getColumnIndex(CallLog.Calls.DURATION);
             int name = managedCursor.getColumnIndex(CallLog.Calls.CACHED_NAME);
+            int photo = managedCursor.getColumnIndex(CallLog.Calls.CACHED_PHOTO_ID);
 
             while (managedCursor.moveToNext()) {
                 String phNum = managedCursor.getString(number);
@@ -101,13 +104,10 @@ public class GetHistoryLogFragment extends Fragment {
 
                 if(person == null)
                     person ="Number Only";
-                Log.d("Person", "p" + person);
-                calName.add(person);
-                calNum.add(phNum);
-                calDuration.add(callDuration);
-                calType.add(callType);
 
-                callLog.add(historyLog);
+                Long dat = callDate.getTime();
+
+                callLog.add(new HistoryLog(callDuration, callType, phNum, person, callDate, dat));
             }
 //                managedCursor.close();
             Log.d("HistorySize: ", "" + callLog.size());
@@ -123,8 +123,12 @@ public class GetHistoryLogFragment extends Fragment {
     }
 
     private void setUpListView(){
+
+        Collections.reverse(callLog);
         HistoryLogAdapter adapter = new HistoryLogAdapter(getActivity().
-                getApplicationContext(), calName, calNum, calDuration, calType);
+                getApplicationContext(), callLog);
+
+
         lstCallLogs.setAdapter(adapter);
     }
 }
